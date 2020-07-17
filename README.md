@@ -5,8 +5,8 @@ ______ _            _____             _             _ _
 |  _| | | '__/ _ \ | |    / _ \| '_ \| __| '__/ _ \| | |/ _ \ '__|
 | |   | | | |  __/ | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 \_|   |_|_|  \___|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
+                                               Created by MNNRD
 ```
-***- by MNNRD***
 
  A just-for-fun project to provide custom fire modes for gamers using controllers.
  
@@ -26,4 +26,5 @@ If you want to contribute new languages / hardware support / platforms or if you
 # Inspiration
 This projecttakes inspiration from [Just Call Me Koko](https://github.com/justcallmekoko) and his work on the [XboxOneRapidFire](https://github.com/justcallmekoko/XboxOneRapidFire/blob/master/rapid_fire_arduino_xbox_one_s.ino) repo. At the time of creating this project, I've got no C++ experience, so I started a new project to utilise MicroPython on a spare Wemos D1 Mini I had.
 
-# This README is a work in process... check back later for more!
+# Under Construction!
+**This README is a work in process... check back later for more!**

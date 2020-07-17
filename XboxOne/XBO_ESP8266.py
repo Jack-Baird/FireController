@@ -5,10 +5,13 @@ ______ _            _____             _             _ _
 |  _| | | '__/ _ \ | |    / _ \| '_ \| __| '__/ _ \| | |/ _ \ '__|
 | |   | | | |  __/ | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 \_|   |_|_|  \___|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
+                                               Created by MNNRD
 
 A MircoPython script for use with ESP8266 boards to provide custom
 fire modes for new-style Xbox One controllers.
 """
+
+#TODO: Implement burst-fire mode
 
 import machine
 from time import sleep

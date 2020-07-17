@@ -11,8 +11,15 @@ A MircoPython script for use with ESP8266 boards to provide custom
 fire modes for new-style Xbox One controllers.
 """
 
-#TODO: Test & prove burst-fire mode
-#TODO: Confirm full functionality
+# -------------------------------------------------
+# Edit these constants for customisation!
+# -------------------------------------------------
+DELAY = 0.05 # delay (secs) between shots when active
+BURST = 3 # number of rounds in burst-fire mode
+DEBOUNCE = 0.2 # switch debounce time
+ENABLE_LED = False # use to enable / disable LED
+# -------------------------------------------------
+# -------------------------------------------------
 
 import machine
 from time import sleep
@@ -22,24 +29,19 @@ L3 = machine.Pin(5, machine.Pin.IN) # D1
 R3 = machine.Pin(4, machine.Pin.IN) # D2
 RTin = machine.Pin(14, machine.Pin.IN) # D5
 RTout = machine.Pin(12, machine.Pin.OUT) # D6
-LED = machine.Pin(13, machine.Pin.OUT) # D7
+LED = machine.Pin(13, machine.Pin.OUT) if ENABLE_LED else None # D7
 
 RTout.value(0)
-LED.value(1)
+try:
+    LED.value(1)
+    print('LED control enabled')
+except Exception as e:
+    print('LED control disabled')
+
 
 fc_mode = 0 # (0) Off, (1) Burst, (2) Auto
 l3_active = 0 # bool L3 state
 r3_active = 0 # bool R3 state
-
-# -------------------------------------------------
-# Edit these constants for customisation!
-# -------------------------------------------------
-DELAY = 0.05 # delay (secs) between shots when active
-BURST = 3 # number of rounds in burst-fire mode
-DEBOUNCE = 0.2 # switch debounce time
-ENABLE_LED = True # use to toggle LED control on / off
-# -------------------------------------------------
-# -------------------------------------------------
 
 def led_flash(style):
     """
@@ -104,21 +106,25 @@ def trigger_normal(p):
         if not fire:
             break
 
-def toggle_fc_mode():
+def cycle_fc_mode():
     """
-    Toggles fire modes
+    Cycles fire modes
     """
     global fc_mode
-    fc_mode = 1 if fc_mode == 0 else 2 if fc_mode == 1 else 0 if fc_mode == 2
-    if fc_mode == 1:
+    if fc_mode == 0:
+        fc_mode = 1
         print('Burst-fire Active')
         led_flash(1) if ENABLE_LED else None
-    elif fc_mode == 2:
+
+    elif fc_mode == 1:
+        fc_mode = 2
         print('Rapid-fire Active')
         led_flash(2) if ENABLE_LED else None
-    else:
+
+    elif fc_mode == 2:
+        fc_mode = 0
         print('Fire Controller Inactive')
-        led_flash(0) if ENABLE_LED else None
+        led_flash(0) if ENABLE_LED else None        
 
 def sample_sticks():
     """
@@ -132,7 +138,7 @@ while True:
     # polling for mode-change command
     toggle = sample_sticks()
     if toggle:
-        toggle_fc_mode()
+        cycle_fc_mode()
         toggle = 0
         sleep(DEBOUNCE) #? Necessary?
 
@@ -146,7 +152,7 @@ while True:
             toggle = sample_sticks()
             if toggle:
                 # toggles fire-mode selector
-                toggle_fc_mode()
+                cycle_fc_mode()
                 toggle = 0
                 sleep(DEBOUNCE)
 
@@ -160,7 +166,7 @@ while True:
                     toggle = sample_sticks()
                     if toggle:
                         # toggles fire-mode selector
-                        toggle_fc_mode()
+                        cycle_fc_mode()
                         toggle = 0
                         sleep(DEBOUNCE)
                         break

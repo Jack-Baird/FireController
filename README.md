@@ -5,8 +5,8 @@ ______ _            _____             _             _ _
 |  _| | | '__/ _ \ | |    / _ \| '_ \| __| '__/ _ \| | |/ _ \ '__|
 | |   | | | |  __/ | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 \_|   |_|_|  \___|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
-                                                  ***- by MNNRD***
 ```
+***- by MNNRD***
 
  A just-for-fun project to provide custom fire modes for gamers using controllers.
  

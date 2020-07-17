@@ -11,7 +11,8 @@ A MircoPython script for use with ESP8266 boards to provide custom
 fire modes for new-style Xbox One controllers.
 """
 
-#TODO: Implement burst-fire mode
+#TODO: Test & prove burst-fire mode
+#TODO: Confirm full functionality
 
 import machine
 from time import sleep
@@ -26,27 +27,40 @@ LED = machine.Pin(13, machine.Pin.OUT) # D7
 RTout.value(0)
 LED.value(1)
 
-mod_active = 0 # bool mod state
+fc_mode = 0 # (0) Off, (1) Burst, (2) Auto
 l3_active = 0 # bool L3 state
 r3_active = 0 # bool R3 state
-DELAY = 0.05 # delay between shots when active
-DEBOUNCE = 0.2
+
+# -------------------------------------------------
+# Edit these constants for customisation!
+# -------------------------------------------------
+DELAY = 0.05 # delay (secs) between shots when active
+BURST = 3 # number of rounds in burst-fire mode
+DEBOUNCE = 0.2 # switch debounce time
+ENABLE_LED = True # use to toggle LED control on / off
+# -------------------------------------------------
+# -------------------------------------------------
 
 def led_flash(style):
     """
-    Controls the main LED to signal activation/deac of mod
+    Controls the main LED to signal ac/deac of mod
     """
-    if style:
+    if style == 0:
+        LED.value(0)
+        sleep(1.5)
+        LED.value(1)
+
+    if style == 1:
+        LED.value(0)
+        sleep(0.5)
+        LED.value(1)
+
+    if style == 2:
         for i in range(2):
             LED.value(0)
             sleep(0.5)
             LED.value(1)
-            sleep(0.5)
-
-    if not style:
-        LED.value(0)
-        sleep(1)
-        LED.value(1)
+            sleep(0.5) if i < 1 else None
 
 def trigger_on(p):
     """
@@ -72,6 +86,14 @@ def trigger_auto(p):
         else:
             sleep(DELAY)
 
+def trigger_burst(p):
+    """
+    Burst-fire mode trigger control
+    """
+    for i in range(BURST):
+        trigger_on(p)
+        trigger_off(p)
+
 def trigger_normal(p):
     """
     Normal mode trigger control
@@ -82,18 +104,21 @@ def trigger_normal(p):
         if not fire:
             break
 
-def toggle_mod_state():
+def toggle_fc_mode():
     """
-    Toggles in and out of rapid-fire mode
+    Toggles fire modes
     """
-    global mod_active
-    mod_active = 1 if mod_active == 0 else 0
-    if mod_active:
-        print('Mod ACTIVE')
-        led_flash(1)
+    global fc_mode
+    fc_mode = 1 if fc_mode == 0 else 2 if fc_mode == 1 else 0 if fc_mode == 2
+    if fc_mode == 1:
+        print('Burst-fire Active')
+        led_flash(1) if ENABLE_LED else None
+    elif fc_mode == 2:
+        print('Rapid-fire Active')
+        led_flash(2) if ENABLE_LED else None
     else:
-        print('Mod INACTIVE')
-        led_flash(0)
+        print('Fire Controller Inactive')
+        led_flash(0) if ENABLE_LED else None
 
 def sample_sticks():
     """
@@ -105,24 +130,42 @@ def sample_sticks():
 # main loop
 while True:
     # polling for mode-change command
-    switch1 = sample_sticks()
-    if switch1:
-        toggle_mod_state()
-        switch1 = 0
-        sleep(DEBOUNCE)
+    toggle = sample_sticks()
+    if toggle:
+        toggle_fc_mode()
+        toggle = 0
+        sleep(DEBOUNCE) #? Necessary?
 
-    if mod_active:
-        # steps into rapid-fire mode
+    if fc_mode == 1:
+        # steps into burst-fire mode
         while True:
-            RTin.irq(trigger=machine.Pin.IRQ_RISING, handler=trigger_auto)
+            # listens for trigger in burst-fire mode
+            RTin.irq(trigger=machine.Pin.IRQ_RISING, handler=trigger_burst)
 
             # polling for mode-change command
-            switch2 = sample_sticks()
-            if switch2:
-                # steps out of rapid-fire mode
-                toggle_mod_state()
-                switch2 = 0
+            toggle = sample_sticks()
+            if toggle:
+                # toggles fire-mode selector
+                toggle_fc_mode()
+                toggle = 0
                 sleep(DEBOUNCE)
+
+            if fc_mode == 2:
+                # steps into rapid-fire mode
+                while True:
+                    # listens for trigger in rapid-fire mode
+                    RTin.irq(trigger=machine.Pin.IRQ_RISING, handler=trigger_auto)
+
+                    # polling for mode-change command
+                    toggle = sample_sticks()
+                    if toggle:
+                        # toggles fire-mode selector
+                        toggle_fc_mode()
+                        toggle = 0
+                        sleep(DEBOUNCE)
+                        break
+        
                 break
 
-    RTin.irq(trigger=machine.Pin.IRQ_RISING, handler=trigger_normal) # listens for normal trigger use
+    # listens for normal trigger use
+    RTin.irq(trigger=machine.Pin.IRQ_RISING, handler=trigger_normal)
